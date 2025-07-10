@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const factoryController = require('../controllers/factoryController');
+const storageController = require('../controllers/storageController');
 
-// Gestion usines
-router.get('/', factoryController.getAllFactories);
-router.get('/:id', factoryController.getFactoryById);
-router.get('/type/:type', factoryController.getFactoriesByType);
-
-// Production
-router.post('/:id/start', factoryController.startProduction);
-router.post('/:id/stop', factoryController.stopProduction);
-router.get('/:id/status', factoryController.getProductionStatus);
-
-// Transformation
-router.post('/:id/process', factoryController.processBatch);
+// Routes pour le stockage
+router.get('/', storageController.getStorage);
+router.get('/stats', storageController.getStorageStats);
+router.post('/sell', storageController.sellItem);
+router.post('/add', storageController.addItem);
+router.post('/remove', storageController.removeItem);
 
 module.exports = router;

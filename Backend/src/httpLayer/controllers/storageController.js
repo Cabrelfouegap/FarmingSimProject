@@ -1,31 +1,79 @@
-class StorageController {
-    constructor(storageService) {
-        this.storageService = storageService;
-    }
+const StorageService = require('../../businessLogic/storageService');
+const StorageRepository = require('../../dataAccess/storageRepository');
+const EventManager = require('../../businessLogic/eventManager');
 
-    async getStock(req, res) {
-        try {
-            const stock = await this.storageService.getStock();
-            res.json(stock);
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    }
+// Initialisation des dépendances
+const storageRepository = new StorageRepository();
+const eventManager = new EventManager();
+const storageService = new StorageService(storageRepository, eventManager);
 
-    async sellItem(req, res) {
-        try {
-            const { itemType, quantity } = req.body;
-            await this.storageService.removeItem(itemType, quantity);
-            const stock = await this.storageService.getStock();
-            res.json({ 
-                message: `Sold ${quantity}L of ${itemType}`,
-                revenue: quantity * 1, // 1 or/L
-                stock 
-            });
-        } catch (err) {
-            res.status(400).json({ error: err.message });
-        }
+module.exports = {
+  async getStorage(req, res) {
+    try {
+      const storage = await storageService.getStock();
+      res.json(storage);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-}
+  },
 
-module.exports = StorageController;
+  async sellItem(req, res) {
+    try {
+      const { itemType, quantity } = req.body;
+      if (!itemType || !quantity) {
+        return res.status(400).json({ error: 'itemType and quantity are required' });
+      }
+
+      const result = await storageService.sellItem(itemType, quantity);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
+  async addItem(req, res) {
+    try {
+      const { itemType, quantity } = req.body;
+      if (!itemType || !quantity) {
+        return res.status(400).json({ error: 'itemType and quantity are required' });
+      }
+
+      const result = await storageService.addItem(itemType, quantity);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
+  async removeItem(req, res) {
+    try {
+      const { itemType, quantity } = req.body;
+      if (!itemType || !quantity) {
+        return res.status(400).json({ error: 'itemType and quantity are required' });
+      }
+
+      const result = await storageService.removeItem(itemType, quantity);
+      res.json(result);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+
+  async getStorageStats(req, res) {
+    try {
+      const storage = await storageService.getStock();
+      const stats = {
+        capacity: storage.capacity,
+        used: storage.used,
+        remaining: storage.remaining,
+        totalRevenue: storage.totalRevenue,
+        isFull: storage.isFull,
+        itemCount: storage.items.length,
+        totalItems: storage.items.reduce((sum, item) => sum + item.quantity, 0)
+      };
+      res.json(stats);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+};

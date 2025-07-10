@@ -31,22 +31,31 @@ const factorySchema = new mongoose.Schema({
     required: true,
     min: 1 
   },
-  processingRate: { // en L/second
+  processingRate: { // en L/seconde
     type: Number,
     default: 100
+  },
+  requiresEqualQuantities: {
+    type: Boolean,
+    default: false
   },
   lastProcessed: { 
     type: Date, 
     default: null 
+  },
+  totalProcessed: {
+    type: Number,
+    default: 0
+  },
+  totalRevenue: {
+    type: Number,
+    default: 0
   }
 });
 
-factorySchema.methods.canProcess = function(storage) {
-  return this.inputTypes.every(input => 
-    storage.items.some(item => 
-      item.itemType === input && item.quantity >= this.processingRate
-    )
-  );
-};
+// Index pour optimiser les requêtes
+factorySchema.index({ factoryId: 1 });
+factorySchema.index({ type: 1 });
+factorySchema.index({ isActive: 1 });
 
 module.exports = mongoose.model('Factory', factorySchema);

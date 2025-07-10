@@ -1,14 +1,20 @@
 const FieldService = require('../../businessLogic/fieldService');
 const FieldRepository = require('../../dataAccess/fieldRepository');
 const MachineService = require('../../businessLogic/machineService');
+const MachineRepository = require('../../dataAccess/machineRepository');
+const StorageService = require('../../businessLogic/storageService');
+const StorageRepository = require('../../dataAccess/storageRepository');
 const EventManager = require('../../businessLogic/eventManager');
 
 // Initialisation des dépendances
 const fieldRepository = new FieldRepository();
-const machineService = new MachineService();
+const machineRepository = new MachineRepository();
+const storageRepository = new StorageRepository();
 const eventManager = new EventManager();
+const machineService = new MachineService(machineRepository, eventManager);
+const storageService = new StorageService(storageRepository, eventManager);
 
-const fieldService = new FieldService(fieldRepository, machineService, eventManager);
+const fieldService = new FieldService(fieldRepository, machineService, storageService, eventManager);
 
 class FieldController {
   // Nouvelle méthode pour obtenir tous les champs
@@ -43,7 +49,7 @@ class FieldController {
         return res.status(400).json({ error: 'Invalid request data' });
       }
 
-      const field = await fieldService.cultivateField(fieldId, action, cropType);
+      const field = await fieldService.cultivate(fieldId, action, cropType);
       res.json(field);
     } catch (err) {
       res.status(400).json({ error: err.message });
@@ -53,7 +59,7 @@ class FieldController {
   async harvest(req, res) {
     try {
       const fieldId = parseInt(req.params.id);
-      const field = await fieldService.harvestField(fieldId);
+      const field = await fieldService.harvest(fieldId);
       res.json(field);
     } catch (err) {
       res.status(400).json({ error: err.message });

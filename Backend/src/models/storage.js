@@ -3,13 +3,14 @@ const mongoose = require('mongoose');
 const storageSchema = new mongoose.Schema({
   capacity: {
     type: Number,
-    default: 100000, // 100,000 L
-    min: 0
+    default: 100000, // 100 000 L selon l'énoncé
+    required: true
   },
   used: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
+    max: 100000
   },
   items: [{
     itemType: {
@@ -21,40 +22,42 @@ const storageSchema = new mongoose.Schema({
       required: true,
       min: 0
     },
-    valuePerUnit: {
+    value: {
       type: Number,
-      default: 1 // 1 or/L par défaut
+      default: 1 // 1 L = 1 or selon l'énoncé
     }
-  }]
+  }],
+  totalRevenue: {
+    type: Number,
+    default: 0
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-storageSchema.methods.addItem = function(itemType, quantity, value = 1) {
-  if (this.used + quantity > this.capacity) {
-    throw new Error('Storage capacity exceeded');
-  }
-
-  const existingItem = this.items.find(item => item.itemType === itemType);
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    this.items.push({ itemType, quantity, valuePerUnit: value });
-  }
-
-  this.used += quantity;
+// Méthodes utilitaires
+storageSchema.methods.getAvailableSpace = function() {
+  return this.capacity - this.used;
 };
 
-storageSchema.methods.removeItem = function(itemType, quantity) {
-  const itemIndex = this.items.findIndex(item => item.itemType === itemType);
-  if (itemIndex === -1 || this.items[itemIndex].quantity < quantity) {
-    throw new Error('Not enough items in storage');
-  }
-
-  this.items[itemIndex].quantity -= quantity;
-  this.used -= quantity;
-
-  if (this.items[itemIndex].quantity === 0) {
-    this.items.splice(itemIndex, 1);
-  }
+storageSchema.methods.isFull = function() {
+  return this.used >= this.capacity;
 };
+
+storageSchema.methods.canAdd = function(quantity) {
+  return this.used + quantity <= this.capacity;
+};
+
+storageSchema.methods.getTotalValue = function() {
+  return this.items.reduce((total, item) => {
+    return total + (item.quantity * item.value);
+  }, 0);
+};
+
+// Index pour optimiser les requêtes
+storageSchema.index({ used: 1 });
+storageSchema.index({ 'items.itemType': 1 });
 
 module.exports = mongoose.model('Storage', storageSchema);

@@ -10,6 +10,7 @@ router.get('/type/:type', factoryController.getFactoriesByType);
 // Gestion de la production
 router.post('/:id/start', factoryController.startProduction);
 router.post('/:id/stop', factoryController.stopProduction);
+router.get('/:id/status', factoryController.getProductionStatus);
 router.post('/:id/process', factoryController.processBatch);
 
 // Gestion du stock

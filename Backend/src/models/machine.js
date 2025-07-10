@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const machineTypes = {
-  // Communes
+  // Machines communes
   TRACTOR: 'tractor',
-  STANDARD_TRAILER: 'standard_trailer',
+  STANDARD_TRAILER: 'trailer',
   HARVESTER: 'harvester',
   PLOW: 'plow',
   FERTILIZER: 'fertilizer',
   PLANTER: 'planter',
   
-  // Moissonneuses spécialisées
+  // Machines spécialisées - Moissonneuses
   GRAPE_HARVESTER: 'grape_harvester',
   OLIVE_HARVESTER: 'olive_harvester',
   POTATO_HARVESTER: 'potato_harvester',
@@ -17,57 +17,60 @@ const machineTypes = {
   COTTON_HARVESTER: 'cotton_harvester',
   SUGARCANE_HARVESTER: 'sugarcane_harvester',
   TREE_HARVESTER: 'tree_harvester',
-  SPINACH_HARVESTER: 'spinach_harvester',
-  GREENBEAN_HARVESTER: 'greenbean_harvester',
-  PEA_HARVESTER: 'pea_harvester',
   VEGETABLE_HARVESTER: 'vegetable_harvester',
+  SPINACH_HARVESTER: 'spinach_harvester',
+  PEA_HARVESTER: 'pea_harvester',
+  BEAN_HARVESTER: 'bean_harvester',
   
-  // Planteuses spéciales
+  // Machines spécialisées - Planteuses
   TREE_PLANTER: 'tree_planter',
   POTATO_PLANTER: 'potato_planter',
   SUGARCANE_PLANTER: 'sugarcane_planter',
   VEGETABLE_PLANTER: 'vegetable_planter',
   
-  // Remorque spéciale
+  // Remorque semi
   SEMI_TRAILER: 'semi_trailer'
 };
 
 const machineSchema = new mongoose.Schema({
-  machineId: { 
-    type: Number, 
-    required: true, 
-    unique: true 
+  machineId: {
+    type: Number,
+    required: true,
+    unique: true
   },
-  type: { 
-    type: String, 
-    required: true, 
-    enum: Object.values(machineTypes) 
+  type: {
+    type: String,
+    required: true,
+    enum: Object.values(machineTypes)
   },
-  inUse: { 
-    type: Boolean, 
-    default: false 
+  inUse: {
+    type: Boolean,
+    default: false
   },
-  currentField: { 
-    type: Number, 
+  currentField: {
+    type: Number,
     default: null,
     validate: {
-      validator: Number.isInteger,
-      message: '{VALUE} must be an integer'
+      validator: function(v) {
+        return v === null || (Number.isInteger(v) && v >= 1 && v <= 99);
+      },
+      message: 'currentField must be null or an integer between 1 and 99'
     }
   },
-  taskEndTime: { 
-    type: Date, 
-    default: null 
+  taskEndTime: {
+    type: Date,
+    default: null
   },
-  maintenanceRequired: { 
-    type: Boolean, 
-    default: false 
+  lastMaintenance: {
+    type: Date,
+    default: Date.now
   }
 });
 
-machineSchema.virtual('isAvailable').get(function() {
-  return !this.inUse && !this.maintenanceRequired;
-});
+// Index pour optimiser les requêtes
+machineSchema.index({ machineId: 1 });
+machineSchema.index({ type: 1 });
+machineSchema.index({ inUse: 1 });
 
 module.exports = {
   Machine: mongoose.model('Machine', machineSchema),

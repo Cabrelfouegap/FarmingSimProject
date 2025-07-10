@@ -16,6 +16,10 @@ class FactoryRepository {
   async setFactoryActive(factoryId, isActive) {
     return this.updateFactory(factoryId, { isActive });
   }
+
+  async getFactoriesByType(type) {
+    return Factory.find({ type });
+  }
 }
 
 module.exports = FactoryRepository;

@@ -1,27 +1,25 @@
 const FactoryService = require('../../businessLogic/factoryService');
 const FactoryRepository = require('../../dataAccess/factoryRepository');
-const StorageService = require('../../businessLogic/storageService');
+const StorageRepository = require('../../dataAccess/storageRepository');
 
-class FactoryController {
-  constructor() {
-    this.factoryService = new FactoryService(
-      new FactoryRepository(),
-      new StorageService()
-    );
-  }
+// Initialisation des dépendances
+const factoryRepository = new FactoryRepository();
+const storageRepository = new StorageRepository();
+const factoryService = new FactoryService(factoryRepository, storageRepository);
 
+module.exports = {
   async getAllFactories(req, res) {
     try {
-      const factories = await this.factoryService.getAllFactories();
+      const factories = await factoryService.getAllFactories();
       res.json(factories);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 
   async getFactoryById(req, res) {
     try {
-      const factory = await this.factoryService.getFactoryById(req.params.id);
+      const factory = await factoryService.getFactoryById(req.params.id);
       if (!factory) {
         return res.status(404).json({ error: 'Factory not found' });
       }
@@ -29,83 +27,80 @@ class FactoryController {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 
   async getFactoriesByType(req, res) {
     try {
-      const factories = await this.factoryService.getFactoriesByType(req.params.type);
+      const factories = await factoryService.getFactoriesByType(req.params.type);
       res.json(factories);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 
   async startProduction(req, res) {
     try {
-      const result = await this.factoryService.startProduction(req.params.id);
+      const result = await factoryService.startProduction(req.params.id);
       res.json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
-  }
+  },
 
   async stopProduction(req, res) {
     try {
-      const result = await this.factoryService.stopProduction(req.params.id);
+      const result = await factoryService.stopProduction(req.params.id);
       res.json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
-  }
+  },
 
   async processBatch(req, res) {
     try {
       const { quantity } = req.body;
-      const result = await this.factoryService.processBatch(req.params.id, quantity);
+      const result = await factoryService.processBatch(req.params.id, quantity);
       res.json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
-  }
+  },
 
   async getFactoryStats(req, res) {
     try {
-      const stats = await this.factoryService.getFactoryStats(req.params.id);
+      const stats = await factoryService.getFactoryStats(req.params.id);
       res.json(stats);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 
   async getProductionStatus(req, res) {
     try {
-      // À adapter selon ta logique métier réelle
-      const status = await this.factoryService.getProductionStatus(req.params.id);
+      const status = await factoryService.getProductionStatus(req.params.id);
       res.json(status);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 
   async addInputItem(req, res) {
     try {
       const { item, quantity } = req.body;
-      const result = await this.factoryService.addInputItem(req.params.id, item, quantity);
+      const result = await factoryService.addInputItem(req.params.id, item, quantity);
       res.json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
-  }
+  },
 
   async removeOutputItem(req, res) {
     try {
       const { item, quantity } = req.body;
-      const result = await this.factoryService.removeOutputItem(req.params.id, item, quantity);
+      const result = await factoryService.removeOutputItem(req.params.id, item, quantity);
       res.json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
   }
-}
-
-module.exports = new FactoryController();
+};

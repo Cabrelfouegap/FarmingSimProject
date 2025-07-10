@@ -49,10 +49,14 @@ class MachineController {
 
     async assignMachine(req, res) {
         try {
-            const result = await machineService.assignMachine(req.params.id, req.body);
+            const { fieldId } = req.body;
+            if (!fieldId) {
+                return res.status(400).json({ error: 'fieldId is required' });
+            }
+            const result = await machineService.assignMachine(req.params.id, fieldId);
             res.json(result);
         } catch (err) {
-            res.status(500).json({ error: err.message });
+            res.status(400).json({ error: err.message });
         }
     }
 
@@ -61,7 +65,7 @@ class MachineController {
             const result = await machineService.releaseMachine(req.params.id);
             res.json(result);
         } catch (err) {
-            res.status(500).json({ error: err.message });
+            res.status(400).json({ error: err.message });
         }
     }
 }

@@ -50,6 +50,26 @@ class MachineService {
         return updated;
     }
 
+    async assignMachine(machineId, fieldId) {
+        const machine = await this.machineRepository.getById(machineId);
+        if (!machine) {
+            throw new Error('Machine not found');
+        }
+        
+        const updated = await this.machineRepository.update(machineId, {
+            inUse: true,
+            currentField: fieldId,
+            taskEndTime: new Date(Date.now() + 30000) // 30 secondes
+        });
+
+        this.eventManager.publish('machineAssigned', updated);
+        return updated;
+    }
+
+    async releaseMachine(machineId) {
+        return this.release(machineId);
+    }
+
     async getAvailableMachines() {
         return this.machineRepository.getByType().filter(m => !m.inUse);
     }
