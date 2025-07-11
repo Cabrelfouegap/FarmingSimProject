@@ -1,6 +1,6 @@
-# 🌾 Farming Simulator - Backend API
+# 🌾 Farming Simulator 
 
-Un simulateur de ferme complet avec architecture N-tier, implémentant toutes les fonctionnalités décrites dans l'énoncé.
+Un simulateur de ferme complet avec architecture N-tier.
 
 ## 📋 Fonctionnalités
 
@@ -58,8 +58,8 @@ Un simulateur de ferme complet avec architecture N-tier, implémentant toutes le
 3. **Configuration de l'environnement**
    Créer un fichier `.env` :
    ```env
-   MONGODB_URI=mongodb://localhost:27017/farming_sim
-   PORT=5000
+   MONGODB_URI=
+   PORT=uri_Atlas/farmingSim
    ```
 
 4. **Démarrer le serveur**
