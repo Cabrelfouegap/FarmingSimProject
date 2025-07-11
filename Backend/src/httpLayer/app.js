@@ -9,6 +9,11 @@ const machineRoutes = require('./routes/machines');
 const factoryRoutes = require('./routes/factories');
 const storageRoutes = require('./routes/storage');
 const systemRoutes = require('./routes/system');
+const animalFarmRoutes = require('./routes/animalFarms');
+const greenhouseRoutes = require('./routes/greenhouses');
+const waterRoutes = require('./routes/water');
+const warehouseRoutes = require('./routes/warehouses');
+const fertilizerRoutes = require('./routes/fertilizers');
 
 const app = express();
 
@@ -23,6 +28,11 @@ app.use('/api/machines', machineRoutes);
 app.use('/api/factories', factoryRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/animalFarms', animalFarmRoutes);
+app.use('/api/greenhouses', greenhouseRoutes);
+app.use('/api/water', waterRoutes);
+app.use('/api/warehouses', warehouseRoutes);
+app.use('/api/fertilizers', fertilizerRoutes);
 
 // Route racine
 app.get('/', (req, res) => {

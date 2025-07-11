@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>FarmingSim - Three.js Immersive</title>
+  <style>
+    html, body { 
+      width: 100vw; height: 100vh; margin: 0; padding: 0; 
+      overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    #renderCanvas { width: 100vw; height: 100vh; display: block; }
+    
+    /* HUD Immersif */
+    .hud {
+      position: absolute; top: 20px; left: 20px; 
+      background: rgba(20,20,20,0.9); color: #fff;
+      padding: 1.5rem 2rem; border-radius: 15px; z-index: 10; 
+      min-width: 300px; backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .hud h2 { margin-top: 0; font-size: 1.4rem; letter-spacing: 1px; color: #ffd700; }
+    .hud p { margin: 0.5rem 0; font-size: 1.1rem; }
+    .hud .resource { color: #4CAF50; font-weight: bold; }
+    .hud .warning { color: #ff9800; }
+    .hud .error { color: #f44336; }
+    
+    /* Contrôles */
+    .controls {
+      position: absolute; bottom: 20px; left: 20px;
+      background: rgba(20,20,20,0.9); padding: 1rem; border-radius: 10px;
+      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .controls button {
+      margin: 0.5rem; padding: 0.8rem 1.5rem; border: none; border-radius: 8px;
+      background: linear-gradient(45deg, #4CAF50, #45a049); color: white;
+      font-weight: bold; cursor: pointer; transition: all 0.3s;
+    }
+    .controls button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(76,175,80,0.4); }
+    .controls button:active { transform: translateY(0); }
+    
+    /* Sélection */
+    .selected-info {
+      position: absolute; top: 20px; right: 20px;
+      background: rgba(20,20,20,0.9); padding: 1.5rem; border-radius: 15px;
+      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+      min-width: 250px; display: none;
+    }
+    
+    /* Loading */
+    .loading {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      color: white; font-size: 1.5rem; z-index: 100;
+    }
+    
+    /* Stats */
+    .stats {
+      position: absolute; bottom: 20px; right: 20px;
+      background: rgba(20,20,20,0.9); padding: 1rem; border-radius: 10px;
+      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+      min-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  <div class="loading" id="loading">Chargement de la simulation...</div>
+  
+  <div class="hud" id="hud">
+    <h2>🌾 FarmingSim</h2>
+    <p>Temps: <span class="resource" id="time">0s</span></p>
+    <p>Champs: <span class="resource" id="fields-count">0</span></p>
+    <p>Machines: <span class="resource" id="machines-count">0</span></p>
+    <p>Usines: <span class="resource" id="factories-count">0</span></p>
+    <hr style="border-color: rgba(255,255,255,0.2);">
+    <div><b>🚜 Machines:</b></div>
+    <div id="machines-list"></div>
+  </div>
+  
+  <div class="controls" id="controls">
+    <button onclick="refreshData()">🔄 Actualiser</button>
+    <button onclick="toggleWeather()">🌤️ Météo</button>
+    <button onclick="resetCamera()">📷 Reset Caméra</button>
+  </div>
+  
+  <div class="selected-info" id="selected-info">
+    <h3 id="selected-name">Sélection</h3>
+    <p id="selected-status">État: Inactif</p>
+    <p id="selected-position">Position: 0, 0</p>
+  </div>
+  
+  <div class="stats" id="stats">
+    <h4>📊 Statistiques</h4>
+    <p>FPS: <span id="fps">0</span></p>
+    <p>Objets: <span id="objects-count">0</span></p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  
+  <script>
+    // --- Configuration ---
+    const API_BASE = 'http://localhost:5000';
+    let scene, camera, renderer, controls;
+    let simulationData = {
+      fields: [],
+      machines: [],
+      factories: [],
+      storage: [],
+      system: {}
+    };
+    let selectedEntity = null;
+    let simulationTime = 0;
+    let frameCount = 0;
+    let lastTime = 0;
+
+    // --- Initialisation Three.js ---
+    function init() {
+      // Scene
+      scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0x87ceeb, 50, 200);
+      
+      // Camera
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(50, 30, 50);
+      
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('renderCanvas'), antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setClearColor(0x87ceeb);
+      
+      // Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxDistance = 200;
+      controls.minDistance = 10;
+      
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(50, 50, 50);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
+      directionalLight.shadow.camera.near = 0.5;
+      directionalLight.shadow.camera.far = 500;
+      directionalLight.shadow.camera.left = -100;
+      directionalLight.shadow.camera.right = 100;
+      directionalLight.shadow.camera.top = 100;
+      directionalLight.shadow.camera.bottom = -100;
+      scene.add(directionalLight);
+      
+      // Ground
+      const groundGeometry = new THREE.PlaneGeometry(200, 200);
+      const groundMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x3a5f3a,
+        transparent: true,
+        opacity: 0.8
+      });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+      
+      // Grid helper
+      const gridHelper = new THREE.GridHelper(200, 20, 0x444444, 0x888888);
+      scene.add(gridHelper);
+      
+      // Skybox
+      const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
+      const skyMaterial = new THREE.MeshBasicMaterial({
+        color: 0x87ceeb,
+        side: THREE.BackSide
+      });
+      const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+      scene.add(sky);
+      
+      animate();
+    }
+
+    // --- Chargement des données depuis le backend ---
+    async function loadData() {
+      try {
+        console.log('Chargement des données depuis le backend...');
+        
+        // Utilise les routes existantes du backend
+        const [fieldsRes, machinesRes, factoriesRes, storageRes, systemRes] = await Promise.all([
+          fetch(`${API_BASE}/fields`),
+          fetch(`${API_BASE}/machines`),
+          fetch(`${API_BASE}/factories`),
+          fetch(`${API_BASE}/storage`),
+          fetch(`${API_BASE}/system`)
+        ]);
+        
+        if (!fieldsRes.ok) throw new Error(`Fields: ${fieldsRes.status}`);
+        if (!machinesRes.ok) throw new Error(`Machines: ${machinesRes.status}`);
+        if (!factoriesRes.ok) throw new Error(`Factories: ${factoriesRes.status}`);
+        if (!storageRes.ok) throw new Error(`Storage: ${storageRes.status}`);
+        if (!systemRes.ok) throw new Error(`System: ${systemRes.status}`);
+        
+        simulationData.fields = await fieldsRes.json();
+        simulationData.machines = await machinesRes.json();
+        simulationData.factories = await factoriesRes.json();
+        simulationData.storage = await storageRes.json();
+        simulationData.system = await systemRes.json();
+        
+        console.log('Données chargées:', simulationData);
+        
+        // Créer les objets 3D
+        createEntities();
+        updateHUD();
+        
+        document.getElementById('loading').style.display = 'none';
+        
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        document.getElementById('loading').innerHTML = `Erreur: ${error.message}<br>Vérifiez que le backend tourne sur le port 5000`;
+      }
+    }
+
+    // --- Création des entités 3D ---
+    function createEntities() {
+      // Nettoyer les objets existants
+      scene.children = scene.children.filter(child => 
+        child.type === 'AmbientLight' || 
+        child.type === 'DirectionalLight' || 
+        child.type === 'Mesh' && child.geometry.type === 'PlaneGeometry' ||
+        child.type === 'GridHelper' ||
+        child.type === 'Mesh' && child.geometry.type === 'SphereGeometry'
+      );
+      
+      // Créer les champs
+      simulationData.fields.forEach((field, index) => {
+        const fieldGeometry = new THREE.BoxGeometry(field.area || 5, 0.5, field.area || 5);
+        const fieldMaterial = new THREE.MeshLambertMaterial({ 
+          color: getFieldColor(field.state || 'empty'),
+          transparent: true,
+          opacity: 0.8
+        });
+        const fieldMesh = new THREE.Mesh(fieldGeometry, fieldMaterial);
+        
+        fieldMesh.position.set(
+          field.position?.x || (index * 10 - 20),
+          0.25,
+          field.position?.z || -20
+        );
+        fieldMesh.castShadow = true;
+        fieldMesh.receiveShadow = true;
+        fieldMesh.userData = { type: 'field', data: field };
+        
+        scene.add(fieldMesh);
+      });
+      
+      // Créer les machines
+      simulationData.machines.forEach((machine, index) => {
+        const machineGeometry = new THREE.BoxGeometry(2, 1.5, 3);
+        const machineMaterial = new THREE.MeshLambertMaterial({ 
+          color: getMachineColor(machine.type || 'tractor'),
+          transparent: true,
+          opacity: 0.9
+        });
+        const machineMesh = new THREE.Mesh(machineGeometry, machineMaterial);
+        
+        machineMesh.position.set(
+          machine.position?.x || (index * 8 - 10),
+          0.75,
+          machine.position?.z || 10
+        );
+        machineMesh.castShadow = true;
+        machineMesh.receiveShadow = true;
+        machineMesh.userData = { type: 'machine', data: machine };
+        
+        // Ajouter des roues
+        const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 8);
+        const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+        
+        const wheelPositions = [
+          { x: -0.8, z: -1.2 }, { x: -0.8, z: 1.2 },
+          { x: 0.8, z: -1.2 }, { x: 0.8, z: 1.2 }
+        ];
+        
+        wheelPositions.forEach(pos => {
+          const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+          wheel.position.set(
+            machineMesh.position.x + pos.x,
+            0.5,
+            machineMesh.position.z + pos.z
+          );
+          wheel.rotation.z = Math.PI / 2;
+          wheel.castShadow = true;
+          scene.add(wheel);
+        });
+        
+        scene.add(machineMesh);
+      });
+      
+      // Créer les usines
+      simulationData.factories.forEach((factory, index) => {
+        const factoryGeometry = new THREE.CylinderGeometry(3, 3, 4, 8);
+        const factoryMaterial = new THREE.MeshLambertMaterial({ 
+          color: getFactoryColor(factory.type || 'processing'),
+          transparent: true,
+          opacity: 0.9
+        });
+        const factoryMesh = new THREE.Mesh(factoryGeometry, factoryMaterial);
+        
+        factoryMesh.position.set(
+          factory.position?.x || (index * 15 - 15),
+          2,
+          factory.position?.z || 20
+        );
+        factoryMesh.castShadow = true;
+        factoryMesh.receiveShadow = true;
+        factoryMesh.userData = { type: 'factory', data: factory };
+        
+        scene.add(factoryMesh);
+      });
+    }
+
+    // --- Couleurs selon le type/état ---
+    function getFieldColor(state) {
+      switch(state) {
+        case 'growing': return 0x4CAF50;
+        case 'ready': return 0xFFD700;
+        case 'harvested': return 0x8B4513;
+        default: return 0x90EE90;
+      }
+    }
+    
+    function getMachineColor(type) {
+      switch(type) {
+        case 'tractor': return 0xFF4444;
+        case 'harvester': return 0xFFAA00;
+        case 'planter': return 0x44AA44;
+        default: return 0x888888;
+      }
+    }
+    
+    function getFactoryColor(type) {
+      switch(type) {
+        case 'processing': return 0x4444FF;
+        case 'storage': return 0x44AAAA;
+        default: return 0x888888;
+      }
+    }
+
+    // --- Mise à jour de l'interface ---
+    function updateHUD() {
+      document.getElementById('time').textContent = `${simulationTime}s`;
+      document.getElementById('fields-count').textContent = simulationData.fields.length;
+      document.getElementById('machines-count').textContent = simulationData.machines.length;
+      document.getElementById('factories-count').textContent = simulationData.factories.length;
+      
+      const machinesList = document.getElementById('machines-list');
+      machinesList.innerHTML = simulationData.machines.map(machine => 
+        `<div style="cursor:pointer; padding: 0.3rem; margin: 0.2rem 0; border-radius: 5px; background: rgba(255,255,255,0.1);" 
+             onclick="selectEntity('${machine._id || machine.id}')">
+           🚜 ${machine.name || machine.type || 'Machine'} (${machine.status || 'idle'})
+         </div>`
+      ).join('');
+    }
+
+    // --- Sélection d'entité ---
+    window.selectEntity = function(id) {
+      const entity = [...simulationData.machines, ...simulationData.fields, ...simulationData.factories]
+        .find(e => (e._id || e.id) === id);
+      
+      if (entity) {
+        selectedEntity = entity;
+        const info = document.getElementById('selected-info');
+        const name = document.getElementById('selected-name');
+        const status = document.getElementById('selected-status');
+        const position = document.getElementById('selected-position');
+        
+        name.textContent = `${entity.type || 'Entité'} ${entity.name || entity._id || entity.id}`;
+        status.textContent = `État: ${entity.status || 'inconnu'}`;
+        position.textContent = `Position: ${Math.round(entity.position?.x || 0)}, ${Math.round(entity.position?.z || 0)}`;
+        info.style.display = 'block';
+      }
+    };
+
+    // --- Contrôles ---
+    window.refreshData = function() {
+      loadData();
+    };
+
+    window.toggleWeather = function() {
+      if (scene.fog) {
+        scene.fog = null;
+        renderer.setClearColor(0x87ceeb);
+      } else {
+        scene.fog = new THREE.Fog(0x666666, 30, 100);
+        renderer.setClearColor(0x666666);
+      }
+    };
+
+    window.resetCamera = function() {
+      camera.position.set(50, 30, 50);
+      controls.reset();
+    };
+
+    // --- Animation ---
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Mise à jour des contrôles
+      controls.update();
+      
+      // Statistiques FPS
+      frameCount++;
+      const currentTime = performance.now();
+      if (currentTime - lastTime >= 1000) {
+        document.getElementById('fps').textContent = frameCount;
+        frameCount = 0;
+        lastTime = currentTime;
+      }
+      
+      // Compteur d'objets
+      const objectCount = scene.children.filter(child => child.type === 'Mesh').length;
+      document.getElementById('objects-count').textContent = objectCount;
+      
+      // Animation des machines
+      scene.children.forEach(child => {
+        if (child.userData?.type === 'machine' && child.userData.data.status === 'working') {
+          child.rotation.y += 0.02;
+        }
+      });
+      
+      renderer.render(scene, camera);
+    }
+
+    // --- Gestion du redimensionnement ---
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // --- Initialisation ---
+    init();
+    loadData();
+    
+    // Boucle de simulation
+    setInterval(() => {
+      simulationTime++;
+      updateHUD();
+    }, 1000);
+  </script>
+</body>
+</html> 

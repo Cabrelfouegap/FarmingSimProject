@@ -3,6 +3,11 @@ const { Machine, machineTypes } = require('../models/machine');
 const Storage = require('../models/storage');
 const Factory = require('../models/factory');
 const factoryConfig = require('../config/factoryConfig');
+const AnimalFarm = require('../models/animalFarm');
+const Greenhouse = require('../models/greenhouse');
+const WaterReservoir = require('../models/waterReservoir');
+const Warehouse = require('../models/warehouse');
+const Fertilizer = require('../models/fertilizer');
 
 const initializeDB = async () => {
   console.log('Initialisation de la base de données...');
@@ -79,6 +84,46 @@ const initializeDB = async () => {
   await Factory.deleteMany({});
   await Factory.insertMany(factories);
   console.log('✅ 11 usines créées');
+
+  // 5. AnimalFarms
+  await AnimalFarm.deleteMany({});
+  await AnimalFarm.insertMany([
+    { animalType: 'cow', maxAnimals: 50, animals: [] },
+    { animalType: 'sheep', maxAnimals: 40, animals: [] }
+  ]);
+  console.log('✅ Fermes animales créées');
+
+  // 6. Greenhouses
+  await Greenhouse.deleteMany({});
+  await Greenhouse.insertMany([
+    { name: 'Serre tomates', cropType: 'tomate', capacity: 1000, currentLevel: 500 },
+    { name: 'Serre fraises', cropType: 'fraise', capacity: 800, currentLevel: 400 }
+  ]);
+  console.log('✅ Serres créées');
+
+  // 7. WaterReservoirs
+  await WaterReservoir.deleteMany({});
+  await WaterReservoir.insertMany([
+    { capacity: 20000, currentLevel: 15000 },
+    { capacity: 30000, currentLevel: 25000 }
+  ]);
+  console.log('✅ Réservoirs d\'eau créés');
+
+  // 8. Warehouses
+  await Warehouse.deleteMany({});
+  await Warehouse.insertMany([
+    { capacity: 50000, used: 10000 },
+    { capacity: 75000, used: 20000 }
+  ]);
+  console.log('✅ Entrepôts créés');
+
+  // 9. Fertilizers
+  await Fertilizer.deleteMany({});
+  await Fertilizer.insertMany([
+    { type: 'azote', quantity: 1000 },
+    { type: 'phosphore', quantity: 800 }
+  ]);
+  console.log('✅ Fertilisants créés');
 
   console.log('🎉 Initialisation terminée avec succès !');
 };
