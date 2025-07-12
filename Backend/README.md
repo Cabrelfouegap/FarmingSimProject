@@ -1,153 +1,30 @@
-# 🌾 Farming Simulator 
+# 🌾 Farming Simulator Backend
 
-Un simulateur de ferme complet avec architecture N-tier.
+Un simulateur de ferme complet, extensible, basé sur une architecture N-tier et un cluster MongoDB (réplica set), prêt pour la production et le développement collaboratif.
 
-## 📋 Fonctionnalités
+---
 
-### 🌱 Cultures (18 types)
-- **Cultures de base** (1000 L/ha) : blé, orge, avoine, canola, soja
-- **Cultures spécialisées** : raisin, olive, pomme de terre, betterave, coton, maïs, tournesol, canne à sucre, peuplier, légumes, épinard, pois, haricots verts
-
-### 🚜 Machines (32 machines)
-- **Machines communes** : 5 tracteurs, 3 remorques, 2 moissonneuses, 2 charrues, 2 fertiliseurs, 2 planteuses
-- **Machines spécialisées** : moissonneuses spécialisées (raisin, olive, pomme de terre, etc.) et planteuses spécialisées
-- **Remorque semi** : pour le coton
-
-### 🏭 Usines (11 types)
-- **Huilerie** : tournesol/olive/canola/riz → huile (×2)
-- **Scierie** : peuplier → planches (×2)
-- **Usine de wagons** : planches → wagons (×4)
-- **Usine de jouets** : planches → jouets (×3)
-- **Moulin à grains** : blé/orge/sorgho → farine (×2)
-- **Raffinerie de sucre** : betterave/canne à sucre → sucre (×2)
-- **Filature** : coton → tissu (×2)
-- **Atelier de couture** : tissu → vêtements (×2)
-- **Boulangerie** : sucre + farine → gâteau (×6)
-- **Usine de chips** : pomme de terre + huile → chips (×6)
-- **Cave à vin** : raisin → vin (×2)
-
-### 🐄 Nouvelles entités (extension)
-- **Fermes animales** : gestion des animaux (vaches, moutons, poules)
-- **Serres** : production sous abri (tomates, fraises, etc.)
-- **Réservoirs d'eau** : gestion de l'irrigation
-- **Entrepôts** : stockage avancé
-- **Fertilisants** : gestion des stocks d'engrais
-
-### ⏱️ Timing selon l'énoncé
-- **Actions** : 30 secondes (labour, semis, fertilisation, récolte)
-- **Maturation** : 2 minutes après semis
-- **Fertilisation** : +50% de rendement
-
-### 💰 Économie
-- **Stockage** : 100 000 L maximum
-- **Valeur** : 1 L = 1 or
-- **Revenus** : suivi automatique des gains
-
-## 🚀 Installation
+## 🚀 Démarrage rapide (Docker Compose)
 
 ### Prérequis
-- Node.js (version 16+)
-- MongoDB (local ou Atlas)
-- npm ou yarn
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac/Linux)
+- [Git](https://git-scm.com/)
 
-### Configuration
-1. **Cloner le projet**
+### Lancer tous les services (MongoDB cluster + backend + mongo-express)
+
+1. Clone le projet :
    ```bash
    git clone <repository-url>
-   cd FarmingSimProject/Backend
+   cd FarmingSimProject
    ```
-
-2. **Installer les dépendances**
+2. Lance tous les services :
    ```bash
-   npm install
+   docker-compose up --build
    ```
+3. Le backend est accessible sur : [http://localhost:5000](http://localhost:5000)
+4. L’interface Mongo Express : [http://localhost:8081](http://localhost:8081)
 
-3. **Configuration de l'environnement**
-   Créer un fichier `.env` :
-   ```env
-   MONGODB_URI=
-   PORT=5000
-   ```
-
-4. **Démarrer le serveur**
-   ```bash
-   # Mode développement
-   npm run dev
-   
-   # Mode production
-   npm start
-   ```
-
-## 📡 API Endpoints
-
-### 🌾 Champs (`/api/fields`)
-- `GET /` - Liste tous les champs
-- `GET /:id` - Détails d'un champ
-- `POST /:id/cultivate` - Cultiver un champ
-- `POST /:id/harvest` - Récolter un champ
-- `POST /:id/fertilize` - Fertiliser un champ
-
-### 🚜 Machines (`/api/machines`)
-- `GET /` - Liste toutes les machines
-- `GET /:id` - Détails d'une machine
-- `GET /type/:type` - Machines par type
-- `POST /:id/acquire` - Acquérir une machine
-- `POST /:id/release` - Libérer une machine
-
-### 🏭 Usines (`/api/factories`)
-- `GET /` - Liste toutes les usines
-- `GET /:id` - Détails d'une usine
-- `GET /type/:type` - Usines par type
-- `POST /:id/start` - Démarrer la production
-- `POST /:id/stop` - Arrêter la production
-- `GET /:id/status` - Statut de production
-- `POST /:id/process` - Traiter un lot
-
-### 📦 Stockage (`/api/storage`)
-- `GET /` - État du stockage
-- `GET /stats` - Statistiques du stockage
-- `POST /sell` - Vendre des items
-- `POST /add` - Ajouter des items
-- `POST /remove` - Retirer des items
-
-### 🐄 Fermes animales (`/api/animalFarms`)
-- `GET /` - Liste toutes les fermes animales
-- `GET /:id` - Détails d'une ferme animale
-- `POST /` - Créer une ferme animale
-- `PUT /:id` - Modifier une ferme animale
-- `DELETE /:id` - Supprimer une ferme animale
-
-### 🌱 Serres (`/api/greenhouses`)
-- `GET /` - Liste toutes les serres
-- `GET /:id` - Détails d'une serre
-- `POST /` - Créer une serre
-- `PUT /:id` - Modifier une serre
-- `DELETE /:id` - Supprimer une serre
-
-### 💧 Réservoirs d'eau (`/api/water`)
-- `GET /` - Liste tous les réservoirs
-- `GET /:id` - Détails d'un réservoir
-- `POST /` - Créer un réservoir
-- `PUT /:id` - Modifier un réservoir
-- `DELETE /:id` - Supprimer un réservoir
-
-### 🏬 Entrepôts (`/api/warehouses`)
-- `GET /` - Liste tous les entrepôts
-- `GET /:id` - Détails d'un entrepôt
-- `POST /` - Créer un entrepôt
-- `PUT /:id` - Modifier un entrepôt
-- `DELETE /:id` - Supprimer un entrepôt
-
-### 🧪 Fertilisants (`/api/fertilizers`)
-- `GET /` - Liste tous les fertilisants
-- `GET /:id` - Détails d'un fertilisant
-- `POST /` - Créer un fertilisant
-- `PUT /:id` - Modifier un fertilisant
-- `DELETE /:id` - Supprimer un fertilisant
-
-### ⚙️ Système (`/api/system`)
-- `GET /status` - Statut du système
-- `POST /reset` - Réinitialiser la base de données
+---
 
 ## 🏗️ Architecture N-Tier
 
@@ -155,113 +32,115 @@ Un simulateur de ferme complet avec architecture N-tier.
 FarmingSimProject/
 ├── Backend/
 │   ├── src/
-│   │   ├── httpLayer/          # Couche présentation
-│   │   │   ├── app.js         # Configuration Express
-│   │   │   ├── controllers/   # Contrôleurs REST
-│   │   │   └── routes/        # Définition des routes
-│   │   ├── businessLogic/     # Couche métier
-│   │   │   ├── fieldService.js
-│   │   │   ├── machineService.js
-│   │   │   ├── factoryService.js
-│   │   │   ├── storageService.js
-│   │   │   ├── animalFarmService.js
-│   │   │   ├── greenhouseService.js
-│   │   │   ├── waterService.js
-│   │   │   ├── warehouseService.js
-│   │   │   ├── fertilizerService.js
-│   │   │   └── eventManager.js
-│   │   ├── dataAccess/        # Couche données
-│   │   │   ├── dataAccess.js
-│   │   │   ├── fieldRepository.js
-│   │   │   ├── machineRepository.js
-│   │   │   ├── factoryRepository.js
-│   │   │   ├── storageRepository.js
-│   │   │   ├── animalFarmRepository.js
-│   │   │   ├── greenhouseRepository.js
-│   │   │   ├── waterReservoirRepository.js
-│   │   │   ├── warehouseRepository.js
-│   │   │   └── fertilizerRepository.js
-│   │   ├── models/           # Modèles de données
-│   │   │   ├── field.js
-│   │   │   ├── machine.js
-│   │   │   ├── factory.js
-│   │   │   ├── storage.js
-│   │   │   ├── animalFarm.js
-│   │   │   ├── greenhouse.js
-│   │   │   ├── waterReservoir.js
-│   │   │   ├── warehouse.js
-│   │   │   ├── fertilizer.js
-│   │   │   └── animal.js
-│   │   ├── config/           # Configuration
-│   │   │   ├── cropConfig.js
-│   │   │   └── factoryConfig.js
-│   │   └── init/             # Initialisation
-│   │       └── dbInitialization.js
-│   ├── server.js             # Point d'entrée
+│   │   ├── httpLayer/        # Présentation (Express, routes, contrôleurs)
+│   │   ├── businessLogic/    # Métier (services)
+│   │   ├── dataAccess/       # Accès données (repositories)
+│   │   ├── models/           # Modèles Mongoose
+│   │   ├── config/           # Configurations
+│   │   └── init/             # Initialisation de la base
+│   ├── Dockerfile            # Image backend
 │   └── package.json
-├── Frontend/
-└── README.md
+├── docker-compose.yaml       # Orchestration cluster + backend
+└── ...
 ```
 
-## 🧪 Tests avec Postman ou PowerShell
+---
 
-### Exemples de requêtes CRUD (toutes entités)
+## ⚡ Fonctionnalités principales
+- 18 cultures, 32 machines, 11 usines
+- Fermes animales, serres, réservoirs d’eau, entrepôts, fertilisants
+- Simulation temps réel (timing, maturation, fertilisation)
+- Stockage, économie, gestion des revenus
+- Initialisation automatique de la base (données de démo)
+- API RESTful complète (CRUD sur toutes les entités)
+- Cluster MongoDB (réplica set, haute disponibilité)
+- Prêt pour transactions MongoDB
 
-#### Créer
-```powershell
-Invoke-RestMethod -Uri "http://localhost:5000/api/warehouses" -Method Post -ContentType "application/json" -Body '{"capacity":12345,"used":0,"products":[]}'
-```
-#### Modifier
-```powershell
-Invoke-RestMethod -Uri "http://localhost:5000/api/warehouses/<ID>" -Method Put -ContentType "application/json" -Body '{"used":9999}'
-```
-#### Supprimer
-```powershell
-Invoke-RestMethod -Uri "http://localhost:5000/api/warehouses/<ID>" -Method Delete
-```
+---
+
+## 📡 Endpoints API principaux
+
+Tous les endpoints sont préfixés par `/api`.
+
+- **Champs** : `GET /api/fields`, `GET /api/fields/state/:state`, `POST /api/fields/batch/assign`
+- **Machines** : `GET /api/machines`
+- **Usines** : `GET /api/factories`
+- **Stockage** : `GET /api/storage`
+- **Fermes animales** : `GET /api/animalFarms`
+- **Serres** : `GET /api/greenhouses`
+- **Réservoirs d’eau** : `GET /api/water`
+- **Entrepôts** : `GET /api/warehouses`
+- **Fertilisants** : `GET /api/fertilizers`
+- **Système** : `GET /api/system/status`, `POST /api/system/start`, `GET /api/system/stats/production`, `GET /api/system/time/current`
+
+> Pour les routes POST/PUT/DELETE, voir le code source ou demander un exemple précis.
+
+---
+
+## 🧪 Tester l’API avec Postman
+
+1. Ouvre Postman
+2. Crée une nouvelle collection « FarmingSim API »
+3. Ajoute les requêtes suivantes :
+   - `GET http://localhost:5000/api/fields`
+   - `GET http://localhost:5000/api/machines`
+   - `GET http://localhost:5000/api/factories`
+   - `GET http://localhost:5000/api/animalFarms`
+   - `GET http://localhost:5000/api/greenhouses`
+   - `GET http://localhost:5000/api/water`
+   - `GET http://localhost:5000/api/warehouses`
+   - `GET http://localhost:5000/api/fertilizers`
+   - `GET http://localhost:5000/api/system/status`
+   - `POST http://localhost:5000/api/system/start`
+   - etc.
+4. Clique sur « Send » pour chaque requête et observe la réponse JSON.
+
+---
+
+## 🐳 Détails Docker Compose
+
+- **mongo1, mongo2, mongo3** : Cluster MongoDB (réplica set `rs0`)
+- **backend** : API Node.js/Express (port 5000)
+- **mongo-express** : Interface web MongoDB (port 8081)
+- **Réseau dédié** : Communication interne sécurisée
+
+---
 
 ## 🛠️ Initialisation automatique des données
 
-À chaque démarrage, la base est initialisée avec :
+À chaque démarrage, la base est initialisée avec :
 - 99 champs
 - 32 machines
 - 1 stockage principal
 - 11 usines
-- 2 fermes animales (vaches, moutons)
-- 2 serres (ex : tomates, fraises)
-- 2 réservoirs d'eau
+- 2 fermes animales
+- 2 serres
+- 2 réservoirs d’eau
 - 2 entrepôts
 - 2 fertilisants
 
-## 📝 Extension & migration
-
-- **Architecture extensible** : chaque nouvelle entité suit le schéma N-tier (modèle, repository, service, controller, route)
-- **Migration automatique** : l'initialisation de la base prend en compte toutes les entités, anciennes et nouvelles
-- **Endpoints REST** : tous les endpoints CRUD sont disponibles pour chaque entité
+---
 
 ## 📝 Notes techniques
-
-- **Base de données** : MongoDB avec Mongoose
+- **Base de données** : MongoDB cluster (réplica set, transactions prêtes)
 - **API** : REST avec Express.js
-- **Architecture** : N-tier avec séparation des responsabilités
-- **Validation** : Validation des données côté serveur
-- **Gestion d'erreurs** : Middleware global de gestion d'erreurs
-- **Performance** : Index MongoDB pour optimiser les requêtes
-
-## 🎯 Conformité avec l'énoncé
-
-✅ **18 cultures** avec rendements spécifiques  
-✅ **32 machines** (communes + spécialisées)  
-✅ **11 usines** avec multiplicateurs corrects  
-✅ **Timing** : 30s actions, 2min maturation  
-✅ **Fertilisation** : +50% de rendement  
-✅ **Stockage** : 100 000 L maximum  
-✅ **Économie** : 1 L = 1 or  
-✅ **Architecture N-tier** complète  
-✅ **API REST** complète (y compris extensions)  
-✅ **Gestion d'erreurs** robuste  
+- **Validation** : Mongoose + middleware Express
+- **Gestion d’erreurs** : Middleware global
+- **Performance** : Index MongoDB, requêtes optimisées
+- **Extensible** : Ajout facile de nouvelles entités (modèle, repo, service, contrôleur, route)
 
 ---
 
-**Développé avec ❤️ pour l'architecture N-tier et les clusters de bases de données**
+## 🎯 Conformité avec l’énoncé
+
+- 18 cultures, 32 machines, 11 usines
+- Timing, maturation, fertilisation, stockage, économie
+- Architecture N-tier complète
+- API REST complète (y compris extensions)
+- Gestion d’erreurs robuste
+- Cluster MongoDB prêt pour la production
+
+---
+
+**Développé avec ❤️ pour l’architecture N-tier, la simulation et la haute disponibilité**
 
