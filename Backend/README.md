@@ -58,22 +58,110 @@ FarmingSimProject/
 
 ---
 
-## 📡 Endpoints API principaux
+## 📡 Endpoints API détaillés
 
 Tous les endpoints sont préfixés par `/api`.
 
-- **Champs** : `GET /api/fields`, `GET /api/fields/state/:state`, `POST /api/fields/batch/assign`
-- **Machines** : `GET /api/machines`
-- **Usines** : `GET /api/factories`
-- **Stockage** : `GET /api/storage`
-- **Fermes animales** : `GET /api/animalFarms`
-- **Serres** : `GET /api/greenhouses`
-- **Réservoirs d’eau** : `GET /api/water`
-- **Entrepôts** : `GET /api/warehouses`
-- **Fertilisants** : `GET /api/fertilizers`
-- **Système** : `GET /api/system/status`, `POST /api/system/start`, `GET /api/system/stats/production`, `GET /api/system/time/current`
+---
 
-> Pour les routes POST/PUT/DELETE, voir le code source ou demander un exemple précis.
+### 🌾 Champs (`/api/fields`)
+- `GET /` — Liste tous les champs
+- `GET /:id` — Détail d’un champ
+- `GET /state/:state` — Liste des champs par état
+- `POST /:id/cultivate` — Cultiver un champ
+- `POST /:id/harvest` — Récolter un champ
+- `POST /batch/assign` — Assigner une tâche à plusieurs champs
+
+---
+
+### 🚜 Machines (`/api/machines`)
+- `GET /` — Liste toutes les machines
+- `GET /:id` — Détail d’une machine
+- `GET /type/:type` — Machines par type
+- `GET /usage/status` — Statut d’utilisation des machines
+- `POST /:id/assign` — Assigner une machine
+- `POST /:id/release` — Libérer une machine
+
+---
+
+### 🏭 Usines (`/api/factories`)
+- `GET /` — Liste toutes les usines
+- `GET /:id` — Détail d’une usine
+- `GET /type/:type` — Usines par type
+- `POST /:id/start` — Démarrer la production
+- `POST /:id/stop` — Arrêter la production
+- `GET /:id/status` — Statut de production
+- `POST /:id/process` — Traiter un lot
+- `POST /:id/input/add` — Ajouter un item en entrée
+- `POST /:id/output/remove` — Retirer un item en sortie
+- `GET /:id/stats` — Statistiques de l’usine
+
+---
+
+### 📦 Stockage (`/api/storage`)
+- `GET /` — État du stockage
+- `GET /stats` — Statistiques du stockage
+- `POST /sell` — Vendre des items
+- `POST /add` — Ajouter des items
+- `POST /remove` — Retirer des items
+
+---
+
+### 🐄 Fermes animales (`/api/animalFarms`)
+- `GET /` — Liste toutes les fermes animales
+- `GET /:id` — Détail d’une ferme animale
+- `POST /` — Créer une ferme animale
+- `PUT /:id` — Modifier une ferme animale
+- `DELETE /:id` — Supprimer une ferme animale
+
+---
+
+### 🌱 Serres (`/api/greenhouses`)
+- `GET /` — Liste toutes les serres
+- `GET /:id` — Détail d’une serre
+- `POST /` — Créer une serre
+- `PUT /:id` — Modifier une serre
+- `DELETE /:id` — Supprimer une serre
+
+---
+
+### 💧 Réservoirs d’eau (`/api/water`)
+- `GET /` — Liste tous les réservoirs
+- `GET /:id` — Détail d’un réservoir
+- `POST /` — Créer un réservoir
+- `PUT /:id` — Modifier un réservoir
+- `DELETE /:id` — Supprimer un réservoir
+
+---
+
+### 🏬 Entrepôts (`/api/warehouses`)
+- `GET /` — Liste tous les entrepôts
+- `GET /:id` — Détail d’un entrepôt
+- `POST /` — Créer un entrepôt
+- `PUT /:id` — Modifier un entrepôt
+- `DELETE /:id` — Supprimer un entrepôt
+
+---
+
+### 🧪 Fertilisants (`/api/fertilizers`)
+- `GET /` — Liste tous les fertilisants
+- `GET /:id` — Détail d’un fertilisant
+- `POST /` — Créer un fertilisant
+- `PUT /:id` — Modifier un fertilisant
+- `DELETE /:id` — Supprimer un fertilisant
+
+---
+
+### ⚙️ Système (`/api/system`)
+- `GET /status` — Statut du système
+- `POST /start` — Démarrer la simulation
+- `POST /stop` — Arrêter la simulation
+- `POST /speed` — Modifier la vitesse de simulation
+- `GET /stats/production` — Statistiques de production
+- `GET /stats/revenue` — Statistiques de revenus
+- `GET /stats/equipment` — Statistiques sur les équipements
+- `POST /time/advance` — Avancer le temps
+- `GET /time/current` — Heure courante
 
 ---
 
